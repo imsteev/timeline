@@ -44,6 +44,7 @@
         display: table-cell;
         padding: 1rem;
         outline: none;
+        border: none;
         font-size: 1.5rem;
       }
 
@@ -83,13 +84,14 @@
       }
 
       .month:hover {
-        border-bottom: solid black 1px;
+        border-bottom: solid lightgrey 3px;
       }
 
       .year-control {
         display: flex;
         margin-top: 10rem;
         justify-content: space-evenly;
+        cursor: pointer;
       }
 
       .current-year {
@@ -97,19 +99,18 @@
       }
 
       .prev-year {
-        /* cursor: pointer; */
         padding: 1rem;
         border: solid black 1px;
       }
 
       .next-year {
-        /* cursor: pointer; */
         padding: 1rem;
         border: solid black 1px;
       }
 
       .current-month-true {
-        border-bottom: solid black 1px;
+        border-bottom: solid grey 3px;
+        font-weight: bold;
       }
 
       button {
@@ -124,7 +125,6 @@
         top: 50vh;
         left: 35vw;
         width: 60vw;
-        /* border: solid lightgrey 1px; */
         border-radius: 16px;
         padding: 2rem;
       }
@@ -174,14 +174,15 @@
         }
 
         const App = () => {
+          const today = new Date();
           const [title, setTitle] = React.useState('');
           const [description, setDescription] = React.useState('');
-          const [start, setStart] = React.useState(new Date().toISOString().slice(0, 10));
+          const [start, setStart] = React.useState(today.toLocaleDateString().slice(0, 10));
           const [end, setEnd] = React.useState('');
 
           const [submitted, setSubmitted] = React.useState(false)
 
-          const [currentYear, setCurrentYear] = React.useState(new Date().getFullYear())
+          const [currentYear, setCurrentYear] = React.useState(today.getFullYear())
           const [currentMonth, setCurrentMonth] = React.useState(new Date(start).getMonth());
 
           const [experiencesByMonth, setExperiencesByMonth] = React.useState({});
@@ -194,14 +195,18 @@
             if (submitted) {
               setTitle('');
               setDescription('');
-              setStart(new Date().toISOString().slice(0, 10));
+              setStart(today.toLocaleDateString().slice(0, 10));
               setEnd('');
               setSubmitted(false);
             }
           }, [submitted])
 
           React.useEffect(() => {
-            setCurrentMonth(new Date(start).getMonth());
+            const date = new Date(start);
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            setCurrentMonth(date.getMonth());
+            setCurrentYear(year === NaN ? '-' : year);
           }, [start])
 
           const onClick = () => {
@@ -222,24 +227,27 @@
               experiencesByMonth[key] = []
             }
             experiencesByMonth[key].push(newEvent)
-            console.log(experiencesByMonth)
             setSubmitted(true);
           }
 
           const selectMonth = (month) => {
-            console.log(month, currentMonth)
             if (currentMonth !== month) {
               setCurrentMonth(month)
-            } else {
-              setCurrentMonth(null);
             }
           }
 
+          const timelineRef = React.useRef(null)
+
+          React.useEffect(() => {
+            if (timelineRef.current.getBoundingClientRect()) {
+              console.log(timelineRef.current.getBoundingClientRect());
+            }
+          }, [timelineRef])
 
           return <>
             <h1 style={{ textAlign: 'center' }}>Timeline</h1>
             <div>
-              <div className="timeline">
+              <div className="timeline" ref={timelineRef}>
                 {months.map(month => {
                   const date = new Date()
                   date.setMonth(month % 12)
@@ -248,7 +256,7 @@
                     <button key={month} onClick={() => selectMonth(month)}>
                       {date.getMonthName()}
                     </button>
-                    <span>{numExperiences}</span>
+                    <span style={{ color: 'orange' }}>{numExperiences}</span>
                   </div>
                 })}
               </div>
@@ -269,18 +277,20 @@
               </div>
               <div>
                 <span>Start date:</span>
-                <input placeholder="YYYY-MM-DD" type="text" name="start" value={start} onChange={e => setStart(e.target.value)}/>
+                <input placeholder="MM/DD/YYYY" type="text" name="start" value={start} onChange={e => setStart(e.target.value)}/>
               </div>
               <div>
                 <span>End date:</span>
-                <input placeholder="YYYY-MM-DD" type="text" name="end" value={end} onChange={e => setEnd(e.target.value)} />
+                <input placeholder="MM/DD/YYYY" type="text" name="end" value={end} onChange={e => setEnd(e.target.value)} />
               </div>
               <button onClick={onClick}>Create New</button>
               {error && <div className="error">{error}</div>}
             </div>
             <ul className="events">
               {(experiencesByMonth[`${currentMonth}/${currentYear}`] || [])
-                  .map(t => <li>{t.title}</li>)
+                  .map(t => <li>
+                    {t.title} ({new Date(t.start).toLocaleDateString().slice(0, 10)})
+                  </li>)
               }
             </ul>
           </>
