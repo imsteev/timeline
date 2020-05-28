@@ -8,6 +8,10 @@
     <script src="https://unpkg.com/@babel/standalone@7.9.6/babel.min.js"></script>
     <script src="https://momentjs.com/downloads/moment.min.js"></script>
     <style type="text/css">
+
+      html {
+        overflow-x: hidden;
+      }
       .form {
         display: table;
         position: absolute;
@@ -36,6 +40,7 @@
       }
 
       .form button:hover, .prev-year:hover, .next-year:hover {
+        transition: all 0.1s;
         background-color: black;
         color: white;
       }
@@ -91,7 +96,6 @@
         display: flex;
         margin-top: 10rem;
         justify-content: space-evenly;
-        cursor: pointer;
       }
 
       .current-year {
@@ -122,8 +126,8 @@
 
       .events {
         position: absolute;
-        top: 50vh;
-        left: 35vw;
+        top: 40%;
+        left: 35%;
         width: 60vw;
         border-radius: 16px;
         padding: 2rem;
@@ -189,7 +193,17 @@
 
           const [error, setError] = React.useState('');
 
+          const titleRef = React.useRef(null);
+
           const months = [0, 1, 2, 3, 4, 5, 6,7, 8, 9, 10, 11];
+
+          React.useEffect(() => {
+            console.log('hello')
+            if (titleRef && titleRef.current) {
+              console.log('focusing');
+              titleRef.current.focus();
+            }
+          }, [titleRef]);
 
           React.useEffect(() => {
             if (submitted) {
@@ -245,15 +259,15 @@
           }, [timelineRef])
 
           return <>
-            <h1 style={{ textAlign: 'center' }}>Timeline</h1>
+            <h1 style={{ position: 'relative', left: '80%', fontSize: '3rem', color: '#aeeaaa' }}>Timeline</h1>
             <div>
               <div className="timeline" ref={timelineRef}>
                 {months.map(month => {
                   const date = new Date()
                   date.setMonth(month % 12)
                   const numExperiences = (experiencesByMonth[`${month}/${currentYear}`] || []).length
-                  return <div className={`month current-month-${month === currentMonth}`}>
-                    <button key={month} onClick={() => selectMonth(month)}>
+                  return <div className={`month current-month-${month === currentMonth}`} onClick={() => selectMonth(month)}>
+                    <button key={month}>
                       {date.getMonthName()}
                     </button>
                     <span style={{ color: 'orange' }}>{numExperiences}</span>
@@ -266,10 +280,10 @@
               <h2 className="current-year" style={{ textAlign: 'center', marginTop: ''}}>{currentYear}</h2>
               <h2 className="next-year" onClick={() => setCurrentYear(currentYear + 1)}>Next</h2>
             </div>
-            <div className="form">
+            <div className="form" onKeyDown={e => e.keyCode === 13 ? onClick() : null}>
               <div>
                 <span>Title:</span>
-                <input placeholder="Short title of an experience" type="text" name="title" value={title} onChange={e => setTitle(e.target.value)} />
+                <input autoFocus placeholder="Short title of an experience" type="text" name="title" value={title} onChange={e => setTitle(e.target.value)} />
               </div>
               <div>
                 <span>Description:</span>
@@ -287,9 +301,11 @@
               {error && <div className="error">{error}</div>}
             </div>
             <ul className="events">
+              <div style={{ marginBottom: '3rem' }}>{start}</div>
               {(experiencesByMonth[`${currentMonth}/${currentYear}`] || [])
                   .map(t => <li>
-                    {t.title} ({new Date(t.start).toLocaleDateString().slice(0, 10)})
+                    <span>{t.title} ({new Date(t.start).toLocaleDateString().slice(0, 10)})</span>
+                    <span style={{ marginLeft: '2rem', color: 'orange' }}>{t.description}</span>
                   </li>)
               }
             </ul>
