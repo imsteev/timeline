@@ -283,19 +283,47 @@
             <div className="form" onKeyDown={e => e.keyCode === 13 ? onClick() : null}>
               <div>
                 <span>Title:</span>
-                <input autoFocus placeholder="Short title of an experience" type="text" name="title" value={title} onChange={e => setTitle(e.target.value)} />
+                <input autoFocus
+                  autoComplete="off"
+                  placeholder="Short title of an experience"
+                  type="text"
+                  name="title"
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                />
               </div>
               <div>
                 <span>Description:</span>
-                <input placeholder="Any details?" type="text" name="description" value={description} onChange={e => setDescription(e.target.value)}/>
+                <input
+                  autoComplete="off"
+                  placeholder="Any details?"
+                  type="text"
+                  name="description"
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+              />
               </div>
               <div>
                 <span>Start date:</span>
-                <input placeholder="MM/DD/YYYY" type="text" name="start" value={start} onChange={e => setStart(e.target.value)}/>
+                <input
+                  autoComplete="off"
+                  placeholder="MM/DD/YYYY"
+                  type="text"
+                  name="start"
+                  value={start}
+                  onChange={e => setStart(e.target.value)}
+                />
               </div>
               <div>
                 <span>End date:</span>
-                <input placeholder="MM/DD/YYYY" type="text" name="end" value={end} onChange={e => setEnd(e.target.value)} />
+                <input
+                  autoComplete="off"
+                  placeholder="MM/DD/YYYY"
+                  type="text"
+                  name="end"
+                  value={end}
+                  onChange={e => setEnd(e.target.value)}
+               />
               </div>
               <button onClick={onClick}>Create New</button>
               {error && <div className="error">{error}</div>}
