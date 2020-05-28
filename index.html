@@ -12,6 +12,7 @@
       html {
         overflow-x: hidden;
       }
+
       .form {
         display: table;
         position: absolute;
@@ -54,7 +55,8 @@
       }
 
       .form > div > input:focus {
-        border: solid forestgreen 1px;
+        border: solid  1px #C0C0C0;
+        opacity: 0.8;
       }
 
       .notch {
@@ -71,9 +73,14 @@
         text-transform: capitalize;
       }
 
+
       input::placeholder {
         font-size: 0.8rem;
         opacity: 0.6;
+        margin-bottom: 1.2rem;
+      }
+      input {
+        padding-left: 0.6rem;
       }
 
       .timeline .timeline-event {
@@ -262,7 +269,7 @@
           }, [timelineRef])
 
           return <>
-            <h1 style={{ position: 'relative', left: '80%', fontSize: '3rem', color: '#aeeaaa' }}>Timeline</h1>
+            <h1 style={{ position: 'relative', left: '80%', fontSize: '3rem', color: 'forestgreen' }}>Timeline</h1>
             <div>
               <div className="timeline" ref={timelineRef}>
                 {months.map(month => {
