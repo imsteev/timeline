@@ -175,12 +175,21 @@
         const timelineEvents = [];
 
         const createTimelineEvent = (title, description = '', start = '', end = '') => {
-          return {
+          const data = {
             title,
             description,
             start,
             end
           }
+          console.log(4)
+          fetch(`${API_URL}/api/timeline_events`, {
+            method: 'post',
+            body: JSON.stringify(data),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          return data
         }
 
         const TimelineEvent = ({ e }) => {
@@ -191,6 +200,8 @@
             {e.end && <span>End: {e.end}</span>}
           </div>
         }
+
+        const API_URL = 'http://127.0.0.1:5000'
 
         const App = () => {
           const today = new Date();
@@ -238,6 +249,17 @@
             setCurrentYear(year === NaN ? '-' : year);
           }, [start])
 
+          React.useEffect(() => {
+            fetch(`${API_URL}/api/timeline_events`)
+              .then(resp => {
+                if (resp.status === 200) {
+                  return resp.json()
+                }
+              })
+              .then(console.log)
+              .catch(console.log)
+          }, [])
+
           const onClick = () => {
             const newEvent = createTimelineEvent(title, description, start, end);
             if (!newEvent.title) {
@@ -265,18 +287,10 @@
             }
           }
 
-          const timelineRef = React.useRef(null)
-
-          React.useEffect(() => {
-            if (timelineRef.current.getBoundingClientRect()) {
-              console.log(timelineRef.current.getBoundingClientRect());
-            }
-          }, [timelineRef])
-
           return <>
             <h1 style={{ position: 'relative', left: '80%', fontSize: '3rem', color: 'forestgreen' }}>Timeline</h1>
             <div>
-              <div className="timeline" ref={timelineRef}>
+              <div className="timeline">
                 {months.map(month => {
                   const date = new Date()
                   date.setMonth(month % 12)
