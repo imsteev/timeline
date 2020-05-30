@@ -13,6 +13,7 @@ CREATE_QUERY = """
         )
 """
 
+
 def execute_query(conn, query, params=None):
     cur = conn.cursor()
     result = cur.execute(query)
@@ -30,6 +31,7 @@ def create_timeline_event(conn, event):
     res = cur.execute(query, (title, description, start, end))
     return res.lastrowid
 
+
 def update_timeline_event(conn, id, event):
     cur = conn.cursor()
     title = event.get('title', '')
@@ -46,11 +48,13 @@ def update_timeline_event(conn, id, event):
     cur.execute(query, (title, description, start, end, id))
     return event
 
+
 def delete_timeline_event(conn, id):
     cur = conn.cursor()
     query = "DELETE FROM timeline_events WHERE ID = ?"
     cur.execute(query, (id, ))
     return True
+
 
 def get_all_timeline_events(conn):
     res = execute_query(conn, "SELECT * FROM timeline_events")
@@ -61,6 +65,7 @@ def get_all_timeline_events(conn):
         'start': start,
         'endDate': end
     } for (id, title, description, start, end) in res]
+
 
 def drop_table(cur, table_name):
     query = "DROP TABLE {}".format(table_name)

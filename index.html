@@ -3,12 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <title>Timeline</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <!-- <link rel="manifest" href="/site.webmanifest"> -->
-    <script crossorigin src="https://unpkg.com/react@16.13.1/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@16.13.1/umd/react-dom.development.js"></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react@16.13.1/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@16.13.1/umd/react-dom.development.js"
+    ></script>
     <script src="https://unpkg.com/@babel/standalone@7.9.6/babel.min.js"></script>
     <script src="https://momentjs.com/downloads/moment.min.js"></script>
     <style type="text/css">
@@ -59,14 +65,17 @@
         transition: visibility 0s 2s, opacity 2s linear;
       }
 
-      .form button:hover, .prev-year:hover, .next-year:hover {
+      .form button:hover,
+      .prev-year:hover,
+      .next-year:hover {
         transition: all 0.1s;
         background-color: black;
         color: white;
         cursor: pointer;
       }
 
-      .form > div > input, .form > div > span {
+      .form > div > input,
+      .form > div > span {
         display: table-cell;
         padding: 1rem;
         outline: none;
@@ -75,7 +84,7 @@
       }
 
       .form > div > input:focus {
-        border: solid  1px #C0C0C0;
+        border: solid 1px #c0c0c0;
         opacity: 0.8;
       }
 
@@ -92,7 +101,6 @@
         width: 95%;
         text-transform: capitalize;
       }
-
 
       input::placeholder {
         font-size: 0.8rem;
@@ -112,7 +120,7 @@
         flex-direction: column;
         margin: 1rem;
         align-items: center;
-        flex: 1 1 0px;  /* make all flex items grow to the same proportion*/
+        flex: 1 1 0px; /* make all flex items grow to the same proportion*/
         padding: 1rem;
         border: none;
         cursor: pointer;
@@ -167,7 +175,8 @@
         opacity: 0;
       }
 
-      .delete:hover, .selected-true {
+      .delete:hover,
+      .selected-true {
         display: inline-block;
         margin: 0 1rem;
         opacity: 1;
@@ -183,257 +192,320 @@
       .edit-true {
         cursor: pointer;
       }
-
     </style>
   </head>
   <body>
     <div id="root"></div>
-      <script type="text/babel">
-        Date.prototype.monthNames = [
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December"
-        ];
+    <script type="text/babel">
+      Date.prototype.monthNames = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
 
-        Date.prototype.getMonthName = function() {
-            return this.monthNames[this.getMonth()];
+      Date.prototype.getMonthName = function () {
+        return this.monthNames[this.getMonth()];
+      };
+
+      const timelineEvents = [];
+
+      const getMonthAndYear = (date) => {
+        return `${date.getMonth().toString()}/${date.getFullYear().toString()}`;
+      };
+
+      const createTimelineEvent = (
+        title,
+        description = "",
+        start = "",
+        end = ""
+      ) => {
+        const data = {
+          title,
+          description,
+          start,
+          end,
         };
+        fetch(`${API_URL}/api/timeline_events`, {
+          method: "POST",
+          body: JSON.stringify(data),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        return data;
+      };
 
-        const timelineEvents = [];
+      const updateTimelineEvent = (timeline_event_id, data) => {
+        fetch(`${API_URL}/api/timeline_events/${timeline_event_id}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        console.log(data, "PUT");
+        return data;
+      };
 
-        const getMonthAndYear = (date) => {
-            return `${date.getMonth().toString()}/${date.getFullYear().toString()}`
-          }
+      const deleteTimelineEvent = (event) => {
+        fetch(`${API_URL}/api/timeline_events/${event.id}`, {
+          method: "DELETE",
+        });
+      };
 
-        const createTimelineEvent = (title, description = '', start = '', end = '') => {
-          const data = {
-            title,
-            description,
-            start,
-            end
-          }
-          fetch(`${API_URL}/api/timeline_events`, {
-            method: 'POST',
-            body: JSON.stringify(data),
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          })
-          return data
-        }
-
-        const updateTimelineEvent = (timeline_event_id, data) => {
-          fetch(`${API_URL}/api/timeline_events/${timeline_event_id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data),
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          })
-          console.log(data, 'PUT');
-          return data;
-        }
-
-        const deleteTimelineEvent = event => {
-            fetch(`${API_URL}/api/timeline_events/${event.id}`, {
-              'method': 'DELETE',
-            })
-          }
-
-        const TimelineEvent = ({ e }) => {
-          return <div className="timeline-event">
+      const TimelineEvent = ({ e }) => {
+        return (
+          <div className="timeline-event">
             <h3>{e.title}</h3>
             <p>{e.description}</p>
             {e.start && <span>Start: {e.start}</span>}
             {e.end && <span>End: {e.end}</span>}
           </div>
-        }
+        );
+      };
 
-        const API_URL = 'http://127.0.0.1:5000'
+      const API_URL = "http://127.0.0.1:5000";
 
-        const App = () => {
-          const today = new Date();
-          const [title, setTitle] = React.useState('');
-          const [description, setDescription] = React.useState('');
-          const [start, setStart] = React.useState(today.toLocaleDateString().slice(0, 10));
-          const [end, setEnd] = React.useState('');
+      const App = () => {
+        const today = new Date();
+        const [title, setTitle] = React.useState("");
+        const [description, setDescription] = React.useState("");
+        const [start, setStart] = React.useState(
+          today.toLocaleDateString().slice(0, 10)
+        );
+        const [end, setEnd] = React.useState("");
 
-          const [submitted, setSubmitted] = React.useState(false)
+        const [submitted, setSubmitted] = React.useState(false);
 
-          const [currentYear, setCurrentYear] = React.useState(today.getFullYear())
-          const [currentMonth, setCurrentMonth] = React.useState(new Date(start).getMonth());
+        const [currentYear, setCurrentYear] = React.useState(
+          today.getFullYear()
+        );
+        const [currentMonth, setCurrentMonth] = React.useState(
+          new Date(start).getMonth()
+        );
 
-          const [experiencesByMonth, setExperiencesByMonth] = React.useState({});
+        const [experiencesByMonth, setExperiencesByMonth] = React.useState({});
 
-          const [error, setError] = React.useState('');
+        const [error, setError] = React.useState("");
 
-          const [selectedEvent, setSelectedEvent] = React.useState(null);
+        const [selectedEvent, setSelectedEvent] = React.useState(null);
 
-          const titleRef = React.useRef(null);
+        const titleRef = React.useRef(null);
 
-          const months = [0, 1, 2, 3, 4, 5, 6,7, 8, 9, 10, 11];
+        const months = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
+        React.useEffect(() => {
+          if (titleRef && titleRef.current) {
+            titleRef.current.focus();
+          }
+        }, [titleRef]);
 
-          React.useEffect(() => {
-            if (titleRef && titleRef.current) {
-              titleRef.current.focus();
+        React.useEffect(() => {
+          const date = new Date(start);
+          if (date.getTime() === date.getTime()) {
+            // NaN is not equal to itself: http://adripofjavascript.com/blog/drips/the-problem-with-testing-for-nan-in-javascript.html
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            setCurrentMonth(date.getMonth());
+            setCurrentYear(year == NaN ? "-" : year);
+          }
+        }, [start]);
+
+        React.useEffect(() => {
+          fetch(`${API_URL}/api/timeline_events`)
+            .then((resp) => {
+              if (resp.status === 200) {
+                return resp.json();
+              }
+            })
+            .then((events) => {
+              createExperienceMap(events);
+            })
+            .catch(console.log);
+        }, []);
+
+        const onClick = () => {
+          if (!selectedEvent) {
+            const newEvent = createTimelineEvent(
+              title,
+              description,
+              start,
+              end
+            );
+            if (!newEvent.title) {
+              setError("Please input a title");
+              return;
             }
-          }, [titleRef]);
-
-          React.useEffect(() => {
+            if (!newEvent.start) {
+              setError("Please enter a start month");
+              return;
+            }
+            setError("");
             const date = new Date(start);
-            if (date.getTime() === date.getTime()) {  // NaN is not equal to itself: http://adripofjavascript.com/blog/drips/the-problem-with-testing-for-nan-in-javascript.html
-              const month = date.getMonth();
-              const year = date.getFullYear();
-              setCurrentMonth(date.getMonth());
-              setCurrentYear(year == NaN ? '-' : year);
+            const key = `${date.getMonth()}/${currentYear}`;
+            if (!(key in experiencesByMonth)) {
+              experiencesByMonth[key] = [];
             }
-
-          }, [start])
-
-          React.useEffect(() => {
-            fetch(`${API_URL}/api/timeline_events`)
-              .then(resp => {
-                if (resp.status === 200) {
-                  return resp.json()
-                }
-              })
-              .then(events => {
-                createExperienceMap(events)
-              })
-              .catch(console.log)
-          }, [])
-
-          const onClick = () => {
-            if (!selectedEvent) {
-              const newEvent = createTimelineEvent(title, description, start, end);
-              if (!newEvent.title) {
-                setError('Please input a title')
-                return;
-              }
-              if (!newEvent.start) {
-                setError('Please enter a start month');
-                return;
-              }
-              setError('');
-              const date = new Date(start)
-              const key = `${date.getMonth()}/${currentYear}`;
-              if (!(key in experiencesByMonth)) {
-                experiencesByMonth[key] = []
-              }
-              experiencesByMonth[key].push(newEvent);
-              setCurrentEvents(experiencesByMonth[key]);
-              setTitle('')
-              setDescription('')
-              setStart(today.toISOString().slice(0, 10))
-              setEnd('')
-            } else {
-              selectedEvent.title = title;
-              selectedEvent.description = description;
-              selectedEvent.start = start;
-              selectedEvent.end = end;
-              const event = updateTimelineEvent(selectedEvent.id, {...selectedEvent, ...{ title, description, start, end }})
-              // setSelectedEvent(null);
-            }
+            experiencesByMonth[key].push(newEvent);
+            setCurrentEvents(experiencesByMonth[key]);
+            setTitle("");
+            setDescription("");
+            setStart(today.toISOString().slice(0, 10));
+            setEnd("");
+          } else {
+            selectedEvent.title = title;
+            selectedEvent.description = description;
+            selectedEvent.start = start;
+            selectedEvent.end = end;
+            const event = updateTimelineEvent(selectedEvent.id, {
+              ...selectedEvent,
+              ...{ title, description, start, end },
+            });
+            // setSelectedEvent(null);
           }
+        };
 
-          const selectMonth = (month) => {
-            if (currentMonth !== month) {
-              setCurrentMonth(month)
-            }
+        const selectMonth = (month) => {
+          if (currentMonth !== month) {
+            setCurrentMonth(month);
           }
+        };
 
-          const createExperienceMap = (events) => {
-            const newExperiencesByMonth = {};
-            for (let event of events) {
-              if (!event.start) {
-                continue;
-              }
-              const date = new Date(event.start)
-              const key = getMonthAndYear(date);
-              if (!newExperiencesByMonth[key]) {
-                newExperiencesByMonth[key] = []
-              }
-              newExperiencesByMonth[key].push(event);
+        const createExperienceMap = (events) => {
+          const newExperiencesByMonth = {};
+          for (let event of events) {
+            if (!event.start) {
+              continue;
             }
-            console.log(newExperiencesByMonth);
-            setExperiencesByMonth(newExperiencesByMonth);
-            setCurrentEvents(newExperiencesByMonth[`${currentMonth}/${currentYear}`] || [])
-          }
-
-          const editEvent = (event) => {
-            if (selectedEvent !== event) {
-              setSelectedEvent(event);
-            } else {
-              setSelectedEvent(null);
-            }
-          }
-
-          const deleteEvent = (event) => {
-            deleteTimelineEvent(event)
             const date = new Date(event.start);
-            const events = experiencesByMonth[getMonthAndYear(date)]
-            experiencesByMonth[getMonthAndYear(date)] = events.filter(e => e.id !== event.id)
-            setCurrentEvents(currentEvents.filter(e => e.id !== event.id))
+            const key = getMonthAndYear(date);
+            if (!newExperiencesByMonth[key]) {
+              newExperiencesByMonth[key] = [];
+            }
+            newExperiencesByMonth[key].push(event);
+          }
+          console.log(newExperiencesByMonth);
+          setExperiencesByMonth(newExperiencesByMonth);
+          setCurrentEvents(
+            newExperiencesByMonth[`${currentMonth}/${currentYear}`] || []
+          );
+        };
+
+        const editEvent = (event) => {
+          if (selectedEvent !== event) {
+            setSelectedEvent(event);
+          } else {
             setSelectedEvent(null);
           }
+        };
 
-          React.useEffect(() => {
-            if (selectedEvent) {
-              setTitle(selectedEvent.title);
-              setDescription(selectedEvent.description);
-              setStart(selectedEvent.start);
-              setEnd(selectedEvent.end)
-            }
-            console.log(selectedEvent)
-          }, [selectedEvent])
+        const deleteEvent = (event) => {
+          deleteTimelineEvent(event);
+          const date = new Date(event.start);
+          const events = experiencesByMonth[getMonthAndYear(date)];
+          experiencesByMonth[getMonthAndYear(date)] = events.filter(
+            (e) => e.id !== event.id
+          );
+          setCurrentEvents(currentEvents.filter((e) => e.id !== event.id));
+          setSelectedEvent(null);
+        };
 
-          const [currentEvents, setCurrentEvents] = React.useState(experiencesByMonth[`${currentMonth}/${currentYear}`] || [])
-          React.useEffect(() => {
-            setCurrentEvents(experiencesByMonth[`${currentMonth}/${currentYear}`] || [])
-          }, [currentMonth, currentYear])
+        React.useEffect(() => {
+          if (selectedEvent) {
+            setTitle(selectedEvent.title);
+            setDescription(selectedEvent.description);
+            setStart(selectedEvent.start);
+            setEnd(selectedEvent.end);
+          }
+          console.log(selectedEvent);
+        }, [selectedEvent]);
 
-          return <>
-            <h1 style={{ position: 'relative', left: '80%', fontSize: '3rem', color: 'forestgreen' }}>Timeline</h1>
+        const [currentEvents, setCurrentEvents] = React.useState(
+          experiencesByMonth[`${currentMonth}/${currentYear}`] || []
+        );
+        React.useEffect(() => {
+          setCurrentEvents(
+            experiencesByMonth[`${currentMonth}/${currentYear}`] || []
+          );
+        }, [currentMonth, currentYear]);
+
+        return (
+          <>
+            <h1
+              style={{
+                position: "relative",
+                left: "80%",
+                fontSize: "3rem",
+                color: "forestgreen",
+              }}
+            >
+              Timeline
+            </h1>
             <div>
               <div className="timeline">
-                {months.map(month => {
-                  const date = new Date()
-                  date.setMonth(month % 12)
-                  const numExperiences = (experiencesByMonth[`${month}/${currentYear}`] || []).length
-                  return <div className={`month current-month-${month === currentMonth}`} onClick={() => selectMonth(month)}>
-                    <button key={month}>
-                      {date.getMonthName()}
-                    </button>
-                    <span style={{ color: 'orange' }}>{numExperiences}</span>
-                  </div>
+                {months.map((month) => {
+                  const date = new Date();
+                  date.setMonth(month % 12);
+                  const numExperiences = (
+                    experiencesByMonth[`${month}/${currentYear}`] || []
+                  ).length;
+                  return (
+                    <div
+                      className={`month current-month-${
+                        month === currentMonth
+                      }`}
+                      onClick={() => selectMonth(month)}
+                    >
+                      <button key={month}>{date.getMonthName()}</button>
+                      <span style={{ color: "orange" }}>{numExperiences}</span>
+                    </div>
+                  );
                 })}
               </div>
             </div>
             <div className="year-control">
-              <h2 className="prev-year" onClick={() => setCurrentYear(currentYear - 1)}>Previous</h2>
-              <h2 className="current-year" style={{ textAlign: 'center', marginTop: ''}}>{currentYear}</h2>
-              <h2 className="next-year" onClick={() => setCurrentYear(currentYear + 1)}>Next</h2>
+              <h2
+                className="prev-year"
+                onClick={() => setCurrentYear(currentYear - 1)}
+              >
+                Previous
+              </h2>
+              <h2
+                className="current-year"
+                style={{ textAlign: "center", marginTop: "" }}
+              >
+                {currentYear}
+              </h2>
+              <h2
+                className="next-year"
+                onClick={() => setCurrentYear(currentYear + 1)}
+              >
+                Next
+              </h2>
             </div>
-            <div className="form" onKeyDown={e => e.keyCode === 13 ? onClick() : null}>
+            <div
+              className="form"
+              onKeyDown={(e) => (e.keyCode === 13 ? onClick() : null)}
+            >
               <div>
                 <span>Title:</span>
-                <input autoFocus
+                <input
+                  autoFocus
                   autoComplete="off"
                   placeholder="Short title of an experience"
                   type="text"
                   name="title"
-                  value={title || ''}
-                  onChange={e => setTitle(e.target.value)}
+                  value={title || ""}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
               </div>
               <div>
@@ -443,9 +515,9 @@
                   placeholder="Any details?"
                   type="text"
                   name="description"
-                  value={description || ''}
-                  onChange={e => setDescription(e.target.value)}
-              />
+                  value={description || ""}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </div>
               <div>
                 <span>Start date:</span>
@@ -454,8 +526,8 @@
                   placeholder="MM/DD/YYYY"
                   type="text"
                   name="start"
-                  value={start || ''}
-                  onChange={e => setStart(e.target.value)}  // TODO only set if valid date
+                  value={start || ""}
+                  onChange={(e) => setStart(e.target.value)} // TODO only set if valid date
                 />
               </div>
               <div>
@@ -465,42 +537,58 @@
                   placeholder="MM/DD/YYYY"
                   type="text"
                   name="end"
-                  value={end || ''}
-                  onChange={e => setEnd(e.target.value)}  // TODO only set if valid date
-               />
+                  value={end || ""}
+                  onChange={(e) => setEnd(e.target.value)} // TODO only set if valid date
+                />
               </div>
-              <button onClick={onClick}>{!selectedEvent ? 'Create New' : 'Update'}</button>
+              <button onClick={onClick}>
+                {!selectedEvent ? "Create New" : "Update"}
+              </button>
               {error && <div className="error">{error}</div>}
             </div>
             <ul className="events">
               <h2>{Date.prototype.monthNames[currentMonth]}</h2>
               {currentEvents
-                  .sort((a, b) => {
-                    // reverse chronological
-                    if (b.start < a.start) {
-                      return -1
-                    } else if (a.start === b.start) {
-                      return 0
-                    } else {
-                      return 1
-                    }
-                  })
-                  .map(t => <li key={t.id} style={{ alignItems: 'center'}}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <h3 className={`edit-${selectedEvent === t}`}
+                .sort((a, b) => {
+                  // reverse chronological
+                  if (b.start < a.start) {
+                    return -1;
+                  } else if (a.start === b.start) {
+                    return 0;
+                  } else {
+                    return 1;
+                  }
+                })
+                .map((t) => (
+                  <li key={t.id} style={{ alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <h3
+                        className={`edit-${selectedEvent === t}`}
                         onClick={() => editEvent(t)}
-                        style={{ color: selectedEvent === t ? 'var(--green)' : 'black', textDecoration: selectedEvent === t ? 'underline' : undefined }}
-                      >{t.title} ({new Date(t.start).toLocaleDateString().slice(0, 10)})
+                        style={{
+                          color: selectedEvent === t ? "var(--green)" : "black",
+                          textDecoration:
+                            selectedEvent === t ? "underline" : undefined,
+                        }}
+                      >
+                        {t.title} (
+                        {new Date(t.start).toLocaleDateString().slice(0, 10)})
                       </h3>
-                      <div onClick={() => deleteEvent(t)} className={`delete selected-${selectedEvent === t}`}>Delete</div>
+                      <div
+                        onClick={() => deleteEvent(t)}
+                        className={`delete selected-${selectedEvent === t}`}
+                      >
+                        Delete
+                      </div>
                     </div>
-                  </li>)
-              }
+                  </li>
+                ))}
             </ul>
           </>
-        }
+        );
+      };
 
-        ReactDOM.render(<App />, document.getElementById('root'))
-      </script>
+      ReactDOM.render(<App />, document.getElementById("root"));
+    </script>
   </body>
 </html>
