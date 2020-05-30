@@ -26,5 +26,20 @@ def create_timeline_event():
         conn.commit()
         return jsonify({'id': id})
 
+@app.route('/api/timeline_events/<int:id>', methods=['PUT'])
+def update_timeline_event(id):
+    data = request.json
+    with sqlite3.connect('timeline.db') as conn:
+        id = db.update_timeline_event(conn, id, data)
+        conn.commit()
+        return jsonify({'id': id})
+
+@app.route('/api/timeline_events/<int:id>', methods=['DELETE'])
+def delete_timeline_event(id):
+    with sqlite3.connect('timeline.db') as conn:
+        id = db.delete_timeline_event(conn, id)
+        conn.commit()
+        return jsonify(True)
+
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

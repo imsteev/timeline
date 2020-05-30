@@ -12,6 +12,9 @@
     <script src="https://unpkg.com/@babel/standalone@7.9.6/babel.min.js"></script>
     <script src="https://momentjs.com/downloads/moment.min.js"></script>
     <style type="text/css">
+      :root {
+        --green: forestgreen;
+      }
 
       html {
         overflow-x: hidden;
@@ -21,7 +24,7 @@
         display: table;
         position: absolute;
         top: 50vh;
-        margin-left: 6rem;
+        margin-left: 70vw;
       }
 
       .form > div {
@@ -42,6 +45,18 @@
         width: 100%;
         color: red;
         text-align: center;
+      }
+
+      .visible {
+        visibility: visible;
+        opacity: 1;
+        transition: opacity 2s linear;
+      }
+
+      .hidden {
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0s 2s, opacity 2s linear;
       }
 
       .form button:hover, .prev-year:hover, .next-year:hover {
@@ -142,10 +157,31 @@
       .events {
         position: absolute;
         top: 40%;
-        left: 35%;
+        left: 10%;
         width: 60vw;
         border-radius: 16px;
         padding: 2rem;
+      }
+
+      .delete {
+        opacity: 0;
+      }
+
+      .delete:hover, .selected-true {
+        display: inline-block;
+        margin: 0 1rem;
+        opacity: 1;
+        visibility: visible;
+        color: red;
+        cursor: pointer;
+      }
+
+      .edit-false {
+        cursor: pointer;
+      }
+
+      .edit-true {
+        cursor: pointer;
       }
 
     </style>
@@ -174,6 +210,10 @@
 
         const timelineEvents = [];
 
+        const getMonthAndYear = (date) => {
+            return `${date.getMonth().toString()}/${date.getFullYear().toString()}`
+          }
+
         const createTimelineEvent = (title, description = '', start = '', end = '') => {
           const data = {
             title,
@@ -181,9 +221,8 @@
             start,
             end
           }
-          console.log(4)
           fetch(`${API_URL}/api/timeline_events`, {
-            method: 'post',
+            method: 'POST',
             body: JSON.stringify(data),
             headers: {
               'Content-Type': 'application/json'
@@ -191,6 +230,24 @@
           })
           return data
         }
+
+        const updateTimelineEvent = (timeline_event_id, data) => {
+          fetch(`${API_URL}/api/timeline_events/${timeline_event_id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          console.log(data, 'PUT');
+          return data;
+        }
+
+        const deleteTimelineEvent = event => {
+            fetch(`${API_URL}/api/timeline_events/${event.id}`, {
+              'method': 'DELETE',
+            })
+          }
 
         const TimelineEvent = ({ e }) => {
           return <div className="timeline-event">
@@ -219,34 +276,28 @@
 
           const [error, setError] = React.useState('');
 
+          const [selectedEvent, setSelectedEvent] = React.useState(null);
+
           const titleRef = React.useRef(null);
 
           const months = [0, 1, 2, 3, 4, 5, 6,7, 8, 9, 10, 11];
 
+
           React.useEffect(() => {
-            console.log('hello')
             if (titleRef && titleRef.current) {
-              console.log('focusing');
               titleRef.current.focus();
             }
           }, [titleRef]);
 
           React.useEffect(() => {
-            if (submitted) {
-              setTitle('');
-              setDescription('');
-              setStart(today.toLocaleDateString().slice(0, 10));
-              setEnd('');
-              setSubmitted(false);
-            }
-          }, [submitted])
-
-          React.useEffect(() => {
             const date = new Date(start);
-            const month = date.getMonth();
-            const year = date.getFullYear();
-            setCurrentMonth(date.getMonth());
-            setCurrentYear(year === NaN ? '-' : year);
+            if (date.getTime() === date.getTime()) {  // NaN is not equal to itself: http://adripofjavascript.com/blog/drips/the-problem-with-testing-for-nan-in-javascript.html
+              const month = date.getMonth();
+              const year = date.getFullYear();
+              setCurrentMonth(date.getMonth());
+              setCurrentYear(year == NaN ? '-' : year);
+            }
+
           }, [start])
 
           React.useEffect(() => {
@@ -256,29 +307,43 @@
                   return resp.json()
                 }
               })
-              .then(console.log)
+              .then(events => {
+                createExperienceMap(events)
+              })
               .catch(console.log)
           }, [])
 
           const onClick = () => {
-            const newEvent = createTimelineEvent(title, description, start, end);
-            if (!newEvent.title) {
-              setError('Please input a title')
-              return;
+            if (!selectedEvent) {
+              const newEvent = createTimelineEvent(title, description, start, end);
+              if (!newEvent.title) {
+                setError('Please input a title')
+                return;
+              }
+              if (!newEvent.start) {
+                setError('Please enter a start month');
+                return;
+              }
+              setError('');
+              const date = new Date(start)
+              const key = `${date.getMonth()}/${currentYear}`;
+              if (!(key in experiencesByMonth)) {
+                experiencesByMonth[key] = []
+              }
+              experiencesByMonth[key].push(newEvent);
+              setCurrentEvents(experiencesByMonth[key]);
+              setTitle('')
+              setDescription('')
+              setStart(today.toISOString().slice(0, 10))
+              setEnd('')
+            } else {
+              selectedEvent.title = title;
+              selectedEvent.description = description;
+              selectedEvent.start = start;
+              selectedEvent.end = end;
+              const event = updateTimelineEvent(selectedEvent.id, {...selectedEvent, ...{ title, description, start, end }})
+              // setSelectedEvent(null);
             }
-            if (!newEvent.start) {
-              setError('Please enter a start month');
-              return;
-            }
-            setError('');
-            timelineEvents.push(newEvent)
-            const date = new Date(start)
-            const key = `${date.getMonth()}/${currentYear}`;
-            if (!(key in experiencesByMonth)) {
-              experiencesByMonth[key] = []
-            }
-            experiencesByMonth[key].push(newEvent)
-            setSubmitted(true);
           }
 
           const selectMonth = (month) => {
@@ -286,6 +351,56 @@
               setCurrentMonth(month)
             }
           }
+
+          const createExperienceMap = (events) => {
+            const newExperiencesByMonth = {};
+            for (let event of events) {
+              if (!event.start) {
+                continue;
+              }
+              const date = new Date(event.start)
+              const key = getMonthAndYear(date);
+              if (!newExperiencesByMonth[key]) {
+                newExperiencesByMonth[key] = []
+              }
+              newExperiencesByMonth[key].push(event);
+            }
+            console.log(newExperiencesByMonth);
+            setExperiencesByMonth(newExperiencesByMonth);
+            setCurrentEvents(newExperiencesByMonth[`${currentMonth}/${currentYear}`] || [])
+          }
+
+          const editEvent = (event) => {
+            if (selectedEvent !== event) {
+              setSelectedEvent(event);
+            } else {
+              setSelectedEvent(null);
+            }
+          }
+
+          const deleteEvent = (event) => {
+            deleteTimelineEvent(event)
+            const date = new Date(event.start);
+            const events = experiencesByMonth[getMonthAndYear(date)]
+            experiencesByMonth[getMonthAndYear(date)] = events.filter(e => e.id !== event.id)
+            setCurrentEvents(currentEvents.filter(e => e.id !== event.id))
+            setSelectedEvent(null);
+          }
+
+          React.useEffect(() => {
+            if (selectedEvent) {
+              setTitle(selectedEvent.title);
+              setDescription(selectedEvent.description);
+              setStart(selectedEvent.start);
+              setEnd(selectedEvent.end)
+            }
+            console.log(selectedEvent)
+          }, [selectedEvent])
+
+          const [currentEvents, setCurrentEvents] = React.useState(experiencesByMonth[`${currentMonth}/${currentYear}`] || [])
+          React.useEffect(() => {
+            setCurrentEvents(experiencesByMonth[`${currentMonth}/${currentYear}`] || [])
+          }, [currentMonth, currentYear])
 
           return <>
             <h1 style={{ position: 'relative', left: '80%', fontSize: '3rem', color: 'forestgreen' }}>Timeline</h1>
@@ -317,7 +432,7 @@
                   placeholder="Short title of an experience"
                   type="text"
                   name="title"
-                  value={title}
+                  value={title || ''}
                   onChange={e => setTitle(e.target.value)}
                 />
               </div>
@@ -328,7 +443,7 @@
                   placeholder="Any details?"
                   type="text"
                   name="description"
-                  value={description}
+                  value={description || ''}
                   onChange={e => setDescription(e.target.value)}
               />
               </div>
@@ -339,8 +454,8 @@
                   placeholder="MM/DD/YYYY"
                   type="text"
                   name="start"
-                  value={start}
-                  onChange={e => setStart(e.target.value)}
+                  value={start || ''}
+                  onChange={e => setStart(e.target.value)}  // TODO only set if valid date
                 />
               </div>
               <div>
@@ -350,19 +465,35 @@
                   placeholder="MM/DD/YYYY"
                   type="text"
                   name="end"
-                  value={end}
-                  onChange={e => setEnd(e.target.value)}
+                  value={end || ''}
+                  onChange={e => setEnd(e.target.value)}  // TODO only set if valid date
                />
               </div>
-              <button onClick={onClick}>Create New</button>
+              <button onClick={onClick}>{!selectedEvent ? 'Create New' : 'Update'}</button>
               {error && <div className="error">{error}</div>}
             </div>
             <ul className="events">
-              <div style={{ marginBottom: '3rem' }}>{start}</div>
-              {(experiencesByMonth[`${currentMonth}/${currentYear}`] || [])
-                  .map(t => <li>
-                    <span>{t.title} ({new Date(t.start).toLocaleDateString().slice(0, 10)})</span>
-                    <span style={{ marginLeft: '2rem', color: 'orange' }}>{t.description}</span>
+              <h2>{Date.prototype.monthNames[currentMonth]}</h2>
+              {currentEvents
+                  .sort((a, b) => {
+                    // reverse chronological
+                    if (b.start < a.start) {
+                      return -1
+                    } else if (a.start === b.start) {
+                      return 0
+                    } else {
+                      return 1
+                    }
+                  })
+                  .map(t => <li key={t.id} style={{ alignItems: 'center'}}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <h3 className={`edit-${selectedEvent === t}`}
+                        onClick={() => editEvent(t)}
+                        style={{ color: selectedEvent === t ? 'var(--green)' : 'black', textDecoration: selectedEvent === t ? 'underline' : undefined }}
+                      >{t.title} ({new Date(t.start).toLocaleDateString().slice(0, 10)})
+                      </h3>
+                      <div onClick={() => deleteEvent(t)} className={`delete selected-${selectedEvent === t}`}>Delete</div>
+                    </div>
                   </li>)
               }
             </ul>

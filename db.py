@@ -1,12 +1,15 @@
+from collections import namedtuple
 import sqlite3
+
+TimelineEvent = namedtuple('TimelineEvent', ['title', 'description', 'start', 'end'])
 
 CREATE_QUERY = """
     CREATE TABLE IF NOT EXISTS timeline_events
-        (id int PRIMARY KEY,
-            title text NOT NULL,
-            description text,
-            start text NOT NULL,
-            end text
+        (id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT,
+            start TEXT NOT NULL,
+            end TEXT
         )
 """
 
@@ -27,9 +30,37 @@ def create_timeline_event(conn, event):
     res = cur.execute(query, (title, description, start, end))
     return res.lastrowid
 
+def update_timeline_event(conn, id, event):
+    cur = conn.cursor()
+    title = event.get('title', '')
+    description = event.get('description', '')
+    start = event.get('start', '')
+    end = event.get('end', '')
+    query = """UPDATE timeline_events
+               SET title = ?,
+                   description = ?,
+                   start = ?,
+                   end = ?
+               WHERE ID = ?
+            """
+    cur.execute(query, (title, description, start, end, id))
+    return event
+
+def delete_timeline_event(conn, id):
+    cur = conn.cursor()
+    query = "DELETE FROM timeline_events WHERE ID = ?"
+    cur.execute(query, (id, ))
+    return True
+
 def get_all_timeline_events(conn):
     res = execute_query(conn, "SELECT * FROM timeline_events")
-    return [event for event in res]
+    return [{
+        'id': id,
+        'title': title,
+        'description': description,
+        'start': start,
+        'endDate': end
+    } for (id, title, description, start, end) in res]
 
 def drop_table(cur, table_name):
     query = "DROP TABLE {}".format(table_name)
