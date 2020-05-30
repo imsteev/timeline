@@ -6,12 +6,12 @@ import sqlite3
 # set the project root directory as the static folder, you can set others.
 app = Flask(__name__,
             static_url_path='',
-            static_folder='static/')
+            static_folder='timeline-client/public')
 
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')
+    return send_from_directory('timeline-client/public', 'index.html')
 
 
 @app.route('/api/timeline_events', methods=['GET'])

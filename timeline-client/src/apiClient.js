@@ -27,3 +27,7 @@ export const createTimelineEvent = (data) => {
   });
   return data;
 };
+
+export const getAllTimelineEvents = () => {
+  return fetch(`${API_URL}/api/timeline_events`);
+};

@@ -2,14 +2,17 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 
 import {
-  API_URL,
   createTimelineEvent,
   updateTimelineEvent,
   deleteTimelineEvent,
+  getAllTimelineEvents,
 } from "./apiClient";
 
 import { EventsList } from "./components/EventsList";
+import { Header } from "./components/Header";
+import { TextInput } from "./components/TextInput";
 import { TimelineContainer } from "./components/TimelineContainer";
+import { YearContainer } from "./components/YearContainer";
 
 const getMonthAndYear = (date) => {
   return `${date.getMonth().toString()}/${date.getFullYear().toString()}`;
@@ -47,15 +50,13 @@ const App = () => {
   }, [start]);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/timeline_events`)
+    getAllTimelineEvents()
       .then((resp) => {
         if (resp.status === 200) {
           return resp.json();
         }
       })
-      .then((events) => {
-        createExperienceMap(events);
-      })
+      .then(createExperienceMap)
       .catch(console.log);
   }, []);
 
@@ -152,7 +153,7 @@ const App = () => {
   };
 
   return (
-    <>
+    <body>
       <Header />
       <TimelineContainer
         experiencesByMonth={experiencesByMonth}
@@ -208,53 +209,8 @@ const App = () => {
         deleteEvent={deleteEvent}
         selectedEvent={selectedEvent}
       />
-    </>
+    </body>
   );
 };
-
-const YearContainer = ({ currentYear, setCurrentYear }) => {
-  return (
-    <div className="year-control">
-      <h2 className="prev-year" onClick={() => setCurrentYear(currentYear - 1)}>
-        Previous
-      </h2>
-      <h2
-        className="current-year"
-        style={{ textAlign: "center", marginTop: "" }}
-      >
-        {currentYear}
-      </h2>
-      <h2 className="next-year" onClick={() => setCurrentYear(currentYear + 1)}>
-        Next
-      </h2>
-    </div>
-  );
-};
-
-const Header = () => (
-  <h1
-    style={{
-      position: "relative",
-      left: "80%",
-      fontSize: "3rem",
-      color: "forestgreen",
-    }}
-  >
-    Timeline
-  </h1>
-);
-const TextInput = ({ label, name, value, onChange, placeholder = "" }) => (
-  <div>
-    <span>{label}:</span>
-    <input
-      autoComplete="off"
-      placeholder={placeholder}
-      type="text"
-      name={name}
-      value={value || ""}
-      onChange={onChange} // TODO only set if valid date
-    />
-  </div>
-);
 
 export default App;
