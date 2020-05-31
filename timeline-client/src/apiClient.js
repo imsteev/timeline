@@ -29,5 +29,8 @@ export const createTimelineEvent = (data) => {
 };
 
 export const getAllTimelineEvents = () => {
-  return fetch(`${API_URL}/api/timeline_events`);
+  return fetch(`${API_URL}/api/timeline_events`, {
+    method: "GET",
+    "Content-Type": "application/json",
+  });
 };

@@ -9,15 +9,18 @@ app = Flask(__name__,
             static_folder='timeline-client/public')
 
 
-@app.route('/')
-def index():
-    return send_from_directory('timeline-client/public', 'index.html')
+@app.after_request
+def after_request(response):
+    header = response.headers
+    header['Access-Control-Allow-Origin'] = '*'
+    return response
 
 
 @app.route('/api/timeline_events', methods=['GET'])
 def get_timeline_events():
     with sqlite3.connect('timeline.db') as conn:
         events = db.get_all_timeline_events(conn)
+        print(events)
         return jsonify(events)
 
 
